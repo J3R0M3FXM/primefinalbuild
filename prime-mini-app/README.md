@@ -36,7 +36,7 @@ Review `tgcloud status` and `tgcloud diff` before any deployment. Build the stat
 - SQLite schema foundation for customers, products/inventory, saved addresses, order and item snapshots, payments/proofs, inventory history, shipping services, and audit events.
 - Pure business-logic helpers for server-side admin authorization, idempotency-key validation, order totals/snapshots, configurable shipping prices, Geoapify request/route parsing, and Supabase payment-proof validation/private URLs.
 
-Schema additions are source definitions only. They have **not** been migrated to any bot database.
+The clean schema has been migrated to the separately linked staging app `app8912278767`. The owner allowlist is configured in that target's Serverless database; no Telegram IDs or secrets are stored in source or GitHub. The existing live app has not been changed.
 
 ## Initial endpoints
 
@@ -44,8 +44,8 @@ Schema additions are source definitions only. They have **not** been migrated to
 - `getCatalog`: reads active products from Telegram Serverless SQLite.
 - `getCart`: loads the signed-in customer's cart.
 - `updateCartItem`: sets a cart line quantity or removes it when quantity is zero.
-- Admin endpoints require the owner Telegram ID to be present in `system_settings.admin_telegram_user_id`. The clean target has no allowlist row yet, so admin access remains intentionally unavailable until the owner setting is provisioned safely.
+- Admin endpoints require the owner Telegram ID to be present in `system_settings.admin_telegram_user_id`. The staging target has its owner allowlist configured and verified through a temporary server-side runner; that runner was removed and was not deployed.
 
 ## Remaining work and platform gates
 
-Supabase Storage credentials are held in a server-only `system_settings` row, following the existing Serverless app's pattern; callers can only check configured status. Never place credentials in endpoint source, browser build configuration, `VITE_*`, or GitHub. Product image upload is implemented, but the bucket must be created and made public, the service key must be entered by an authorized admin, and Telegram Serverless endpoint payload limits must be checked before live use. Initial owner provisioning and atomic inventory adjustment plus audit guarantees remain gates; the clean target has no admin allowlist row. Checkout is intentionally disabled until atomic order creation and stock reservation, shipping quote validation, order expiry scheduling, and payment-proof Storage access are implemented. Admin UI, Geoapify quotas, and backup/restore remain later-phase work. Do not treat a local build as a production migration or deployment.
+Supabase Storage is configured in the staging database with the public `Logos` bucket for product images and the private `Receipts` bucket reserved for payment proofs; the server key remains server-side. Product image upload endpoints are implemented, but a real upload and Telegram Serverless payload-limit check remain before enabling uploads for production. Inventory adjustment plus audit guarantees remain gated on verifying the platform's atomic multi-write behavior. Checkout is intentionally disabled until order creation and stock reservation, shipping quote validation, expiry behavior, payment-proof Storage access, and their required platform guarantees are implemented. Geoapify integration, admin UI, backup/restore, and cutover rehearsal remain later-phase work. Do not treat the staging app as production-ready or switch the existing live app before the planned acceptance and explicit cutover approval.

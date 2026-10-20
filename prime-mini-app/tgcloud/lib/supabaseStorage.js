@@ -8,7 +8,7 @@ function config(baseUrl, serviceKey, bucket, path) {
   if (typeof serviceKey !== 'string' || serviceKey.length < 20) {
     throw new TypeError('Supabase Storage server configuration is missing.');
   }
-  if (typeof bucket !== 'string' || !/^[a-z0-9_-]{1,63}$/.test(bucket)) throw new TypeError('Invalid storage bucket.');
+  if (typeof bucket !== 'string' || !/^[a-zA-Z0-9_-]{1,63}$/.test(bucket)) throw new TypeError('Invalid storage bucket.');
   if (typeof path !== 'string' || path.length > 512 || path.startsWith('/')
     || path.split('/').some((segment) => !segment || segment === '.' || segment === '..' || !/^[a-zA-Z0-9_.-]+$/.test(segment))) {
     throw new TypeError('Invalid storage object path.');
