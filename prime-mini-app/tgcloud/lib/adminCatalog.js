@@ -22,6 +22,7 @@ function normalizeProduct(input) {
     width: rawDimensions.width,
     height: rawDimensions.height,
   };
+  const imagePath = input.imagePath;
   if (!/^[A-Z0-9][A-Z0-9._-]{0,63}$/.test(sku) || name.length < 1 || name.length > 160
     || description === undefined || description?.length > 5000
     || category === undefined || category?.length > 100
@@ -29,12 +30,16 @@ function normalizeProduct(input) {
     || (weightGrams !== null && (!Number.isSafeInteger(weightGrams) || weightGrams < 0 || weightGrams > 1_000_000))
     || (rawDimensions !== null && (!rawDimensions || typeof rawDimensions !== 'object' || Array.isArray(rawDimensions)
       || ['length', 'width', 'height'].some((key) => !Number.isFinite(rawDimensions[key]) || rawDimensions[key] <= 0 || rawDimensions[key] > 500)))
+    || (imagePath !== undefined && imagePath !== null && (typeof imagePath !== 'string'
+      || !/^product-images\/[a-f0-9-]{36}\.(jpg|png|webp)$/i.test(imagePath)))
     || typeof input.isActive !== 'boolean' || (input.productType !== undefined && input.productType !== 'PHYSICAL')) invalid();
 
-  return {
+  const values = {
     sku, name, description, priceMinor: input.priceMinor, currency: 'PHP',
     category: category || null, weightGrams, dimensionsCm, productType: 'PHYSICAL', isActive: input.isActive,
   };
+  if (imagePath !== undefined) values.imagePath = imagePath;
+  return values;
 }
 
 function publicAdminProduct(row) {

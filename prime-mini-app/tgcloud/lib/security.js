@@ -1,6 +1,6 @@
 import { db, EndpointError } from 'sdk';
 import { eq } from 'sdk/db';
-import { adminUsers } from '../schema.js';
+import { systemSettings } from '../schema.js';
 
 export function requireCustomer(ctx) {
   const user = ctx?.initData?.user;
@@ -15,16 +15,21 @@ export async function requireAdmin(ctx) {
   if (!user || !Number.isSafeInteger(user.id) || user.id <= 0) {
     throw new EndpointError('Telegram account could not be verified.', { code: 'UNAUTHENTICATED' });
   }
-  const admin = await db.select({ id: adminUsers.id, role: adminUsers.role, isActive: adminUsers.isActive })
-    .from(adminUsers)
-    .where(eq(adminUsers.telegramUserId, String(user.id))).get();
-  if (!admin) {
+  const row = await db.select({ value: systemSettings.value }).from(systemSettings)
+    .where(eq(systemSettings.key, 'admin_telegram_user_id')).get();
+  const value = row?.value;
+  const candidates = Array.isArray(value) ? value
+    : value && typeof value === 'object' ? [value]
+      : [value];
+  const allowedIds = candidates.map((candidate) => {
+    const id = candidate && typeof candidate === 'object' ? candidate.userId : candidate;
+    return typeof id === 'string' || typeof id === 'number' ? String(id).trim() : '';
+  }).filter((id) => /^\d+$/.test(id));
+  const telegramUserId = String(user.id);
+  if (!allowedIds.includes(telegramUserId)) {
     throw new EndpointError('You are not authorized to use PRIME administration.', { code: 'FORBIDDEN' });
   }
-  if (!admin.isActive || !['OWNER', 'ADMIN'].includes(admin.role)) {
-    throw new EndpointError('You are not authorized to use PRIME administration.', { code: 'FORBIDDEN' });
-  }
-  return { id: admin.id, role: admin.role, telegramUserId: String(user.id) };
+  return { id: telegramUserId, role: 'OWNER', telegramUserId };
 }
 
 export function validateIdempotencyKey(value) {

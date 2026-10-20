@@ -31,7 +31,8 @@ Review `tgcloud status` and `tgcloud diff` before any deployment. Build the stat
 - `getCatalog`: reads active products from Telegram Serverless SQLite; no sample products are injected.
 - `getCart` and `updateCartItem`: load and update the authenticated customer's cart, with server-side product availability and current-stock validation.
 - `getAdminCatalog`, `saveAdminProduct`, and `adjustAdminInventory`: admin-only product listing, physical product create/update/activation, and reasoned stock adjustments with audit/history records.
-- Admin authorization uses verified Telegram init data and an active database-backed `admin_users` allowlist; unknown, inactive, and unsupported-role users fail closed.
+- Admin authorization uses verified Telegram init data and the database-backed `system_settings.admin_telegram_user_id` allowlist, matching the existing Serverless project; unknown users fail closed.
+- `configureProductStorage` stores the Supabase Storage server key in Serverless SQLite and returns configuration status only. `uploadProductImage` uploads validated images to the configured public product bucket and records the object path in SQLite; the key never enters the browser response.
 - SQLite schema foundation for customers, products/inventory, saved addresses, order and item snapshots, payments/proofs, inventory history, shipping services, and audit events.
 - Pure business-logic helpers for server-side admin authorization, idempotency-key validation, order totals/snapshots, configurable shipping prices, Geoapify request/route parsing, and Supabase payment-proof validation/private URLs.
 
@@ -43,8 +44,8 @@ Schema additions are source definitions only. They have **not** been migrated to
 - `getCatalog`: reads active products from Telegram Serverless SQLite.
 - `getCart`: loads the signed-in customer's cart.
 - `updateCartItem`: sets a cart line quantity or removes it when quantity is zero.
-- Admin endpoints require a corresponding active `admin_users` row. The initial owner provisioning procedure is not yet verified for this target project, so admin access remains intentionally unavailable until that is done safely.
+- Admin endpoints require the owner Telegram ID to be present in `system_settings.admin_telegram_user_id`. The clean target has no allowlist row yet, so admin access remains intentionally unavailable until the owner setting is provisioned safely.
 
 ## Remaining work and platform gates
 
-The backend contract for securely configuring third-party credentials in Telegram Serverless must be verified before Geoapify or Supabase Storage endpoints can be wired. Do not place credentials in endpoint source, frontend input, `VITE_*`, or GitHub. Product image storage, initial owner provisioning, and atomic inventory adjustment plus audit guarantees remain platform gates; no admin row has been provisioned. Checkout is intentionally disabled until atomic order creation and stock reservation, shipping quote validation, order expiry scheduling, and payment-proof Storage access are implemented. Admin UI, Geoapify quotas, and backup/restore remain later-phase work. Do not treat a local build as a production migration or deployment.
+Supabase Storage credentials are held in a server-only `system_settings` row, following the existing Serverless app's pattern; callers can only check configured status. Never place credentials in endpoint source, browser build configuration, `VITE_*`, or GitHub. Product image upload is implemented, but the bucket must be created and made public, the service key must be entered by an authorized admin, and Telegram Serverless endpoint payload limits must be checked before live use. Initial owner provisioning and atomic inventory adjustment plus audit guarantees remain gates; the clean target has no admin allowlist row. Checkout is intentionally disabled until atomic order creation and stock reservation, shipping quote validation, order expiry scheduling, and payment-proof Storage access are implemented. Admin UI, Geoapify quotas, and backup/restore remain later-phase work. Do not treat a local build as a production migration or deployment.

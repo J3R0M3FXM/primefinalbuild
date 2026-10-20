@@ -18,19 +18,12 @@ export const customers = table('customers', {
   usernameLookup: index('customers_username_idx').on(t.username),
 }));
 
-// Telegram IDs in this table are private allowlist data, never customer-facing.
-export const adminUsers = table('admin_users', {
-  id: text('id').primaryKey().default(uuidDefault()),
-  telegramUserId: text('telegram_user_id').notNull(),
-  role: text('role').notNull().default('OWNER'),
-  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
-  createdAt: createdAt(),
+// Server-only settings. Never expose this table or secret values to the Mini App.
+export const systemSettings = table('system_settings', {
+  key: text('key').primaryKey(),
+  value: text('value', { mode: 'json' }).notNull(),
   updatedAt: createdAt(),
-}, (t) => ({
-  telegramUserIdUnique: uniqueIndex('admin_users_telegram_user_id_uidx').on(t.telegramUserId),
-  activeRole: index('admin_users_active_role_idx').on(t.isActive, t.role),
-  roleValid: check('admin_users_role_check', sql`${t.role} IN ('OWNER', 'ADMIN')`),
-}));
+});
 
 export const products = table('products', {
   id: text('id').primaryKey().default(uuidDefault()),
