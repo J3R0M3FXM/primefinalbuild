@@ -26,9 +26,10 @@ Review `tgcloud status` and `tgcloud diff` before any deployment. Build the stat
 
 ## Implemented foundation
 
-- Responsive React Mini App shell with local font assets and real server-backed catalog/account loading.
+- Responsive React Mini App with server-backed catalog, customer account, and persistent cart flows.
 - `getOrCreateAccount`: uses platform-verified Telegram identity and returns only the customer-facing Member ID and display name.
 - `getCatalog`: reads active products from Telegram Serverless SQLite; no sample products are injected.
+- `getCart` and `updateCartItem`: load and update the authenticated customer's cart, with server-side product availability and current-stock validation.
 - SQLite schema foundation for customers, products/inventory, saved addresses, order and item snapshots, payments/proofs, inventory history, shipping services, and audit events.
 - Pure business-logic helpers for server-side admin authorization, idempotency-key validation, order totals/snapshots, configurable shipping prices, Geoapify request/route parsing, and Supabase payment-proof validation/private URLs.
 
@@ -38,7 +39,9 @@ Schema additions are source definitions only. They have **not** been migrated to
 
 - `getOrCreateAccount`: uses platform-verified Telegram identity and returns only the customer-facing Member ID and display name.
 - `getCatalog`: reads active products from Telegram Serverless SQLite.
+- `getCart`: loads the signed-in customer's cart.
+- `updateCartItem`: sets a cart line quantity or removes it when quantity is zero.
 
 ## Remaining work and platform gates
 
-The backend contract for securely configuring third-party credentials in Telegram Serverless must be verified before Geoapify or Supabase Storage endpoints can be wired. Do not place credentials in endpoint source, frontend input, `VITE_*`, or GitHub. Product/admin seed data, order/stock transaction guarantees, order expiry scheduling, payment-proof Storage access, Geoapify quotas, and backup/restore remain gated work. Do not treat a local build as a production migration or deployment.
+The backend contract for securely configuring third-party credentials in Telegram Serverless must be verified before Geoapify or Supabase Storage endpoints can be wired. Do not place credentials in endpoint source, frontend input, `VITE_*`, or GitHub. Checkout is intentionally disabled until atomic order creation and stock reservation, shipping quote validation, order expiry scheduling, and payment-proof Storage access are implemented. Product/admin seed data, Geoapify quotas, and backup/restore remain gated work. Do not treat a local build as a production migration or deployment.

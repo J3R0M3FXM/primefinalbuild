@@ -18,6 +18,32 @@ export interface CatalogProduct {
   availableStock: number;
 }
 
+export interface CartProduct {
+  id: string;
+  sku: string;
+  name: string;
+  priceMinor: number;
+  currency: 'PHP';
+  category: string | null;
+  weightGrams: number | null;
+  availableStock: number;
+  isActive: boolean;
+}
+
+export interface CartLine {
+  productId: string;
+  quantity: number;
+  lineTotalMinor: number;
+  product: CartProduct | null;
+}
+
+export interface CustomerCart {
+  cartId: string;
+  items: CartLine[];
+  subtotalMinor: number;
+  currency: 'PHP';
+}
+
 function call<T>(name: string, input: Record<string, unknown> = {}): Promise<T> {
   const api = window.Telegram?.WebApp?.Serverless;
   if (!api) {
@@ -39,4 +65,12 @@ export function getOrCreateAccount(): Promise<CustomerAccount> {
 
 export function getCatalog(): Promise<CatalogProduct[]> {
   return call<CatalogProduct[]>('getCatalog');
+}
+
+export function getCart(): Promise<CustomerCart> {
+  return call<CustomerCart>('getCart');
+}
+
+export function setCartQuantity(productId: string, quantity: number): Promise<CustomerCart> {
+  return call<CustomerCart>('updateCartItem', { productId, quantity });
 }

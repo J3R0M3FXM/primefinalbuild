@@ -44,6 +44,26 @@ export const products = table('products', {
   weightNonnegative: check('products_weight_nonnegative_check', sql`${t.weightGrams} IS NULL OR ${t.weightGrams} >= 0`),
 }));
 
+export const carts = table('carts', {
+  id: text('id').primaryKey().default(uuidDefault()),
+  customerId: text('customer_id').notNull(),
+  createdAt: createdAt(),
+  updatedAt: createdAt(),
+}, (t) => ({ customerUnique: uniqueIndex('carts_customer_uidx').on(t.customerId) }));
+
+export const cartItems = table('cart_items', {
+  id: text('id').primaryKey().default(uuidDefault()),
+  cartId: text('cart_id').notNull(),
+  productId: text('product_id').notNull(),
+  quantity: integer('quantity').notNull(),
+  createdAt: createdAt(),
+  updatedAt: createdAt(),
+}, (t) => ({
+  cartProductUnique: uniqueIndex('cart_items_cart_product_uidx').on(t.cartId, t.productId),
+  cartLookup: index('cart_items_cart_idx').on(t.cartId),
+  quantityPositive: check('cart_items_quantity_positive_check', sql`${t.quantity} > 0 AND ${t.quantity} <= 99`),
+}));
+
 // Relationships use plain IDs because Telegram Serverless SQLite does not
 // enforce foreign keys. Endpoints validate ownership and parent records.
 export const customerAddresses = table('customer_addresses', {
