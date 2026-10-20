@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.tgcloud/
+!.tgcloud/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo

@@ -1,0 +1,28 @@
+{
+  "name": "prime-telegram-mini-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && tgcloud push",
+    "serverless:status": "tgcloud status",
+    "serverless:diff": "tgcloud diff"
+  },
+  "dependencies": {
+    "@fontsource/lato": "5.3.0",
+    "@fontsource/roboto-condensed": "5.3.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@tgcloud/cli": "0.2.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "typescript": "5.9.3",
+    "vite": "8.3.4"
+  }
+}
