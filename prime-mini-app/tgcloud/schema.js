@@ -18,6 +18,20 @@ export const customers = table('customers', {
   usernameLookup: index('customers_username_idx').on(t.username),
 }));
 
+// Telegram IDs in this table are private allowlist data, never customer-facing.
+export const adminUsers = table('admin_users', {
+  id: text('id').primaryKey().default(uuidDefault()),
+  telegramUserId: text('telegram_user_id').notNull(),
+  role: text('role').notNull().default('OWNER'),
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  createdAt: createdAt(),
+  updatedAt: createdAt(),
+}, (t) => ({
+  telegramUserIdUnique: uniqueIndex('admin_users_telegram_user_id_uidx').on(t.telegramUserId),
+  activeRole: index('admin_users_active_role_idx').on(t.isActive, t.role),
+  roleValid: check('admin_users_role_check', sql`${t.role} IN ('OWNER', 'ADMIN')`),
+}));
+
 export const products = table('products', {
   id: text('id').primaryKey().default(uuidDefault()),
   sku: text('sku').notNull(),
@@ -155,6 +169,7 @@ export const inventoryTransactions = table('inventory_transactions', {
   quantityDelta: integer('quantity_delta').notNull(),
   reason: text('reason'),
   actorCustomerId: text('actor_customer_id'),
+  actorAdminId: text('actor_admin_id'),
   createdAt: createdAt(),
 }, (t) => ({ productHistory: index('inventory_transactions_product_created_idx').on(t.productId, t.createdAt), orderLookup: index('inventory_transactions_order_idx').on(t.orderId) }));
 
@@ -173,6 +188,7 @@ export const shippingServices = table('shipping_services', {
 export const auditEvents = table('audit_events', {
   id: text('id').primaryKey().default(uuidDefault()),
   actorCustomerId: text('actor_customer_id'),
+  actorAdminId: text('actor_admin_id'),
   action: text('action').notNull(),
   entityType: text('entity_type').notNull(),
   entityId: text('entity_id').notNull(),
